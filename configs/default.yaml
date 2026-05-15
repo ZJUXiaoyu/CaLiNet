@@ -1,0 +1,78 @@
+# CaLiNet — default v1.0 configuration
+# Override via CLI: python scripts/01_fit_global.py --config configs/default.yaml --epochs 5
+
+# Paths
+ptbxl_path:   "C:/ZJU/ECG/data/ptb-xl-a-large-publicly-available-electrocardiography-dataset-1.0.3/ptb-xl-a-large-publicly-available-electrocardiography-dataset-1.0.3"
+cpsc_path:    ""
+code_path:    ""
+artifact_dir: "checkpoints"
+results_dir:  "results"
+
+# Data
+sampling_rate: 500
+input_leads:   ["I", "II", "V2"]
+target_leads:  ["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"]
+
+# Episode sampling
+calib_seconds:     2.0
+target_seconds:    2.0
+train_gap_seconds: [0.0, 1.0, 2.0, 5.0]
+
+# Preprocessing
+use_bandpass:    true
+bandpass_low_hz:  0.5
+bandpass_high_hz: 0.0     # 0 → high-pass only
+bandpass_order:   4
+
+# Calibration
+ridge_lambda_W: 1.0
+ridge_lambda_b: 0.1
+ridge_lambda_W_grid: [0.1, 1.0, 10.0, 100.0]
+ridge_lambda_b_grid: [0.0, 0.1, 1.0]
+
+# rho_i quality score
+rho_w_cond: 0.3
+rho_w_fit:  0.5
+rho_w_beat: 0.2
+kappa_max:  10000.0
+tau_fit:    0.1
+
+# Model
+embedding_dim:   128
+unet_channels:   [32, 64, 128, 256]
+film_layers:     ["bottleneck", "enc_3", "enc_4"]
+pad_to_multiple: 16
+use_film_conditioning: true
+
+# Training
+batch_size:    32
+num_workers:   4
+lr:            1.0e-3
+weight_decay:  1.0e-5
+max_epochs:    100
+early_stop_patience: 10
+grad_clip:     1.0
+
+# Validation score weights
+val_w_pcc_precordial: 0.6
+val_w_pcc_missing:    0.2
+val_w_nrmse:          0.2
+
+# Augmentation
+aug_mode: "input_only"
+aug_noise_snr_db: [20.0, 40.0]
+aug_drift_hz:     [0.1, 0.5]
+aug_drift_amp:    0.05
+aug_amp_scale:    [0.9, 1.1]
+
+# Ablations
+use_morphology_loss:    false
+morphology_loss_lambda: 0.1
+
+# Reproducibility
+seed: 42
+
+# Splits
+train_folds: [1, 2, 3, 4, 5, 6, 7, 8]
+val_fold:    9
+test_fold:   10

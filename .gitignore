@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Raw data (download separately)
+data/
+
+# Large model weights (available on request)
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.hdf5
+
+# Large intermediate files
+checkpoints/ptbxl_train_cache.npz
+checkpoints/ptbxl_fold9_cache.npz
+results/cpsc2018_ood.csv
+results/cpsc2018_ood_rho.csv
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.zip
+*.tar.gz
+
+# Logs
+*.log
+logs/
+runs/
+wandb/
