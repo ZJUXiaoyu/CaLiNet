@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "CaLiNet: Calibration-aware Reduced-Lead ECG Reconstruction"
+message: "If you use this software, please cite the associated paper."
+type: software
+authors:
+  - family-names: Zhang
+    given-names: Xinyu
+    affiliation: "College of Biomedical Engineering and Instrument Science, Zhejiang University"
+  - family-names: Cai
+    given-names: Hailing
+    affiliation: "College of Biomedical Engineering and Instrument Science, Zhejiang University"
+  - family-names: Duan
+    given-names: Huilong
+    affiliation: "College of Biomedical Engineering and Instrument Science, Zhejiang University"
+  - family-names: Lu
+    given-names: Xudong
+    affiliation: "College of Biomedical Engineering and Instrument Science, Zhejiang University"
+    email: lvxd@zju.edu.cn
+repository-code: "https://github.com/ZJUXiaoyu/CaLiNet"
+license: MIT
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Zhang
+      given-names: Xinyu
+    - family-names: Cai
+      given-names: Hailing
+    - family-names: Duan
+      given-names: Huilong
+    - family-names: Lu
+      given-names: Xudong
+  title: "Reconstructing 12-lead ECG from 3 leads with brief patient-specific calibration and comprehensive evaluation"
+  year: 2026
+  notes: "Manuscript under peer review"
