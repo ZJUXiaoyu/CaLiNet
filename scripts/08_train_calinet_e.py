@@ -10,12 +10,12 @@ CaLiNet-E forward (per sample, episode = (Xc, Yc, Xt, Yt)):
 
 Locked design (v1.2):
   - Loss: MSE on RECONSTRUCTED leads only (V1, V3, V4, V5, V6).
-  - Validation: same val_score as TCAE (PCC, nrmse, morph weighted).
+  - Validation: same val_score as 1D U-Net w/ anchor (PCC, nrmse, morph weighted).
   - Epoch-0 sanity: should match the value measured by
     scripts/sanity_calinet_e_epoch0.py Test 2 (real rho), tolerance 0.005.
     PCM = 0.6023; CaLiNet-E @ init with real rho ~ 0.6001 (clean rho ~0.96
     fallback drags slightly toward GL).
-  - lr 3e-4 (1/3 of TCAE's 1e-3): the model starts at PCM-level performance,
+  - lr 3e-4 (1/3 of 1D U-Net w/ anchor's 1e-3): the model starts at PCM-level performance,
     larger lr would let randomly-initialized FiLM/decoder destroy that prior.
   - Early stopping with 5-epoch grace period: backbone perturbation in
     epochs 1-3 may temporarily drop below the sanity baseline.
@@ -61,7 +61,7 @@ def parse_args():
     p.add_argument("--epochs", type=int, default=None)
     p.add_argument("--batch_size", type=int, default=None)
     p.add_argument("--lr", type=float, default=3e-4,
-                   help="override TCAE default 1e-3 (CaLiNet-E starts at PCM)")
+                   help="override 1D U-Net w/ anchor default 1e-3 (CaLiNet-E starts at PCM)")
     p.add_argument("--max_train", type=int, default=None)
     p.add_argument("--max_val",   type=int, default=None)
     p.add_argument("--device", default=None)

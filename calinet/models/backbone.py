@@ -1,13 +1,13 @@
-"""Shared 1D U-Net backbone for TCAE and CaLiNet-E.
+"""Shared 1D U-Net backbone for 1D U-Net w/ anchor and CaLiNet-E.
 
 Locked design rules (v1.2):
   1. Single nn.Module class. FiLM conditioning is gated by a flag so
-     TCAE (use_film_conditioning=False) and CaLiNet-E (=True) share the
+     1D U-Net w/ anchor (use_film_conditioning=False) and CaLiNet-E (=True) share the
      EXACT same architecture, channel counts, and kernel sizes. This
-     keeps the 'TCAE = CaLiNet-E without calibration' ablation clean.
+     keeps the '1D U-Net w/ anchor = CaLiNet-E without calibration' ablation clean.
   2. Final conv layer is ZERO-INITIALIZED so that an untrained backbone
      outputs ~0 → predict_residual=True wrappers degrade to their
-     linear baseline at epoch 0 (TCAE→GL, CaLiNet-E→PCM). Training
+     linear baseline at epoch 0 (1D U-Net w/ anchor→GL, CaLiNet-E→PCM). Training
      curves then start from a known baseline and can only go up.
   3. Reflect-pad to next multiple of `pad_to_multiple` so 1000-sample
      windows survive the U-Net's 4 downsample/upsample stages.

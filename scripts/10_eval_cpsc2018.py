@@ -6,7 +6,7 @@ Evaluates 6 reconstruction methods on out-of-distribution CPSC2018:
   2. PCM                 per-patient ridge calibration on the 2s calib block
   3. CNN baseline        plain 1D U-Net (no calibration)
   4. Transformer         (no calibration)
-  5. TCAE                CNN + W_global anchor (no calibration)
+  5. UNetWithAnchor                CNN + W_global anchor (no calibration)
   6. CaLiNet-E           ours: per-patient ridge + FiLM-conditioned U-Net
 
 Two-level aggregation (decision Q in design notes):
@@ -51,10 +51,10 @@ from calinet.models.calibration import (
     apply_transform, calibrate_patient,
 )
 from calinet.models.calinet_e import CaLiNetE
-from calinet.models.tcae import TCAE
+from calinet.models.unet_anchor import UNetWithAnchor
 
 
-ALL_METHODS = ["GL", "PCM", "CNN", "Transformer", "TCAE", "CaLiNet-E"]
+ALL_METHODS = ["GL", "PCM", "CNN", "Transformer", "UNetWithAnchor", "CaLiNet-E"]
 
 
 def parse_args():
@@ -134,7 +134,7 @@ def predict_pcm(ep, W_global, b_global, lam_W, lam_b) -> tuple[np.ndarray, dict]
 
 @torch.no_grad()
 def predict_dl_simple(model, Xt: np.ndarray, device: torch.device) -> np.ndarray:
-    """For CNN / Transformer / TCAE — input (Lt, n_in) -> (Lt, n_out) normalized."""
+    """For CNN / Transformer / UNetWithAnchor — input (Lt, n_in) -> (Lt, n_out) normalized."""
     x = torch.from_numpy(Xt).unsqueeze(0).to(device).float()   # (1, Lt, n_in)
     y = model(x)
     return y.squeeze(0).cpu().numpy()
@@ -206,7 +206,7 @@ def main():
     print(f"  root:          {args.root}")
     print()
 
-    cnn_model = transformer_model = tcae_model = calinet_e_model = None
+    cnn_model = transformer_model = unet_anchor_model = calinet_e_model = None
     if "CNN" in methods:
         cnn_model = CNNBaseline(
             n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
@@ -222,16 +222,16 @@ def main():
         ckpt = torch.load(artifact_dir / "transformer_baseline_best.pth", map_location=device)
         transformer_model.load_state_dict(ckpt["model"])
         transformer_model.eval()
-    if "TCAE" in methods:
-        tcae_model = TCAE.from_artifacts(
+    if "UNetWithAnchor" in methods:
+        unet_anchor_model = UNetWithAnchor.from_artifacts(
             artifact_dir,
             n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
             channels=cfg.unet_channels, embedding_dim=cfg.embedding_dim,
             pad_to_multiple=cfg.pad_to_multiple,
         ).to(device)
-        ckpt = torch.load(artifact_dir / "tcae_full_best.pth", map_location=device)
-        tcae_model.load_state_dict(ckpt["model"])
-        tcae_model.eval()
+        ckpt = torch.load(artifact_dir / "unet_anchor_full_best.pth", map_location=device)
+        unet_anchor_model.load_state_dict(ckpt["model"])
+        unet_anchor_model.eval()
     if "CaLiNet-E" in methods:
         calinet_e_model = CaLiNetE.from_artifacts(
             artifact_dir,
@@ -282,8 +282,8 @@ def main():
                     Yp = predict_dl_simple(cnn_model, ep.Xt, device)
                 elif method == "Transformer":
                     Yp = predict_dl_simple(transformer_model, ep.Xt, device)
-                elif method == "TCAE":
-                    Yp = predict_dl_simple(tcae_model, ep.Xt, device)
+                elif method == "UNetWithAnchor":
+                    Yp = predict_dl_simple(unet_anchor_model, ep.Xt, device)
                 elif method == "CaLiNet-E":
                     Yp, rho = predict_calinet_e(calinet_e_model, ep, device)
                     rho_values.append({

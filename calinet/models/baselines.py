@@ -1,15 +1,15 @@
 """Plain DL baselines: CNNBaseline (1D U-Net) and TransformerBaseline.
 
-Distinguished from TCAE / CaLiNet-E by NOT having the W_global linear
+Distinguished from 1D U-Net w/ anchor / CaLiNet-E by NOT having the W_global linear
 anchor — they learn the full 3-lead -> 12-lead mapping from scratch.
-This isolates the contribution of the linear anchor (TCAE = CNN +
-anchor) and the calibration framework (CaLiNet-E = TCAE + per-patient
+This isolates the contribution of the linear anchor (1D U-Net w/ anchor = CNN +
+anchor) and the calibration framework (CaLiNet-E = 1D U-Net w/ anchor + per-patient
 calibration + FiLM) in the ablation table.
 
-Loss / val flow are shared with TCAE (MSE on reconstructed leads only,
+Loss / val flow are shared with 1D U-Net w/ anchor (MSE on reconstructed leads only,
 val_score = 0.3 PCC + 0.4 exp(-nrmse/tau_n) + 0.3 exp(-morph/tau_m)).
 
-Parameter budget chosen to roughly match TCAE backbone (~3M):
+Parameter budget chosen to roughly match 1D U-Net w/ anchor backbone (~3M):
   CNNBaseline       channels=(32,64,128,256)            ~2.9M
   TransformerBaseline d=192, 6 layers, 8 heads, ffn=768 ~2.7M
 """
@@ -49,7 +49,7 @@ class _ConvBlock(nn.Module):
 class CNNBaseline(nn.Module):
     """3-lead -> 12-lead via plain 1D U-Net (random init).
 
-    Forward signature matches TCAE for drop-in compatibility with the
+    Forward signature matches 1D U-Net w/ anchor for drop-in compatibility with the
     07-style train script: input (B, T, n_in), output (B, T, n_out).
     """
 

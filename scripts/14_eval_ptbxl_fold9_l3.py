@@ -43,7 +43,7 @@ from calinet.data.ptbxl import (
 )
 from calinet.models.calibration import apply_transform, calibrate_patient
 from calinet.models.calinet_e import CaLiNetE
-from calinet.models.tcae import TCAE
+from calinet.models.unet_anchor import UNetWithAnchor
 from calinet.models.baselines import CNNBaseline, TransformerBaseline
 
 # Re-import classifier from training script (same architecture)
@@ -199,11 +199,11 @@ def main():
     tr_model.load_state_dict(torch.load(artifact_dir / 'transformer_baseline_best.pth', map_location=device)['model'])
     tr_model.eval()
 
-    tcae_model = TCAE.from_artifacts(artifact_dir, n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
+    unet_anchor_model = UNetWithAnchor.from_artifacts(artifact_dir, n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
                                       channels=cfg.unet_channels, embedding_dim=cfg.embedding_dim,
                                       pad_to_multiple=cfg.pad_to_multiple).to(device)
-    tcae_model.load_state_dict(torch.load(artifact_dir / 'tcae_full_best.pth', map_location=device)['model'])
-    tcae_model.eval()
+    unet_anchor_model.load_state_dict(torch.load(artifact_dir / 'unet_anchor_full_best.pth', map_location=device)['model'])
+    unet_anchor_model.eval()
 
     calinet_model = CaLiNetE.from_artifacts(artifact_dir, n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
                                              channels=cfg.unet_channels, embedding_dim=cfg.embedding_dim,
@@ -244,7 +244,7 @@ def main():
                 chunks['PCM'].append(apply_transform(Xt_np, W_i, b_i))
                 chunks['1D U-Net'].append(cnn_model(Xt_t).squeeze(0).cpu().numpy())
                 chunks['Transformer'].append(tr_model(Xt_t).squeeze(0).cpu().numpy())
-                chunks['1D U-Net w/ anchor'].append(tcae_model(Xt_t).squeeze(0).cpu().numpy())
+                chunks['1D U-Net w/ anchor'].append(unet_anchor_model(Xt_t).squeeze(0).cpu().numpy())
 
                 batch = {
                     'x_calib': torch.from_numpy(Xc.T)[None].to(device).float(),

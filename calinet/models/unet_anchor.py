@@ -1,22 +1,22 @@
-"""TCAE: Temporal Convolutional Autoencoder (residual variant).
+"""1D U-Net with global-linear anchor (paper: '1D U-Net w/ global-linear anchor').
 
 Locked design (v1.2):
   Y_pred = X · W_global + b_global + R_θ(X)
 
 where R_θ is the shared ResidualUNet backbone with FiLM disabled.
 This form means:
-  - At init (R_θ ≈ 0 due to zero-init head), TCAE degrades to GL
+  - At init (R_θ ≈ 0 due to zero-init head), model degrades to GL
     (the population-level linear baseline). Epoch 0 val_score ≈ GL.
   - Training only has to learn the NON-LINEAR residual on top of GL,
     not the entire 12-lead signal from scratch.
-  - The ablation 'TCAE = CaLiNet-E without per-patient calibration'
+  - The ablation '1D U-Net w/ anchor = CaLiNet-E without per-patient calibration'
     holds exactly: CaLiNet-E replaces W_global with W_i and adds FiLM,
     nothing else changes.
 
 Usage:
-    tcae = TCAE.from_artifacts(cfg, artifact_dir)
-    tcae.train()
-    Y_pred = tcae(Xt)            # (B, T, 12)
+    model = UNetWithAnchor.from_artifacts(cfg, artifact_dir)
+    model.train()
+    Y_pred = model(Xt)            # (B, T, 12)
 
 Input shapes:
     Xt : (B, T, n_in)   — time-major to match Episode dataclass
@@ -34,7 +34,7 @@ import torch.nn as nn
 from .backbone import ResidualUNet
 
 
-class TCAE(nn.Module):
+class UNetWithAnchor(nn.Module):
     def __init__(
         self,
         n_in: int = 3,
@@ -61,7 +61,7 @@ class TCAE(nn.Module):
             "b_global", torch.from_numpy(b_global.astype(np.float32))
         )
 
-        # Shared backbone (FiLM disabled for TCAE)
+        # Shared backbone (FiLM disabled for 1D U-Net w/ anchor)
         self.backbone = ResidualUNet(
             n_in=n_in,
             n_out=n_out,
@@ -92,7 +92,7 @@ class TCAE(nn.Module):
         channels: tuple[int, ...] = (32, 64, 128, 256),
         embedding_dim: int = 128,
         pad_to_multiple: int = 16,
-    ) -> "TCAE":
+    ) -> "UNetWithAnchor":
         """Load W_global / b_global from artifact_dir/global_W.npz."""
         gw = np.load(Path(artifact_dir) / "global_W.npz")
         return cls(

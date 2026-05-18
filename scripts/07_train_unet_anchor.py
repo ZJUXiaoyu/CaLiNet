@@ -1,6 +1,6 @@
-"""Step 4.4-4.5: Train TCAE backbone on PTB-XL.
+"""Step 4.4-4.5: Train UNetWithAnchor backbone on PTB-XL.
 
-TCAE forward:
+UNetWithAnchor forward:
     Y_pred = X · W_global + b_global + R_θ(X)
 
 Locked training design (v1.2):
@@ -17,13 +17,13 @@ Locked training design (v1.2):
   - AdamW + CosineAnnealingLR, grad_clip=1.0.
 
 Artifacts written:
-    checkpoints/tcae_best.pth           best model state_dict + cfg snapshot
-    results/tcae_training_curve.csv     per-epoch metrics
-    results/tcae_val_final.txt          final val summary vs GL/PCM
+    checkpoints/unet_anchor_best.pth           best model state_dict + cfg snapshot
+    results/unet_anchor_training_curve.csv     per-epoch metrics
+    results/unet_anchor_val_final.txt          final val summary vs GL/PCM
 
 Usage:
-    python scripts/07_train_tcae.py
-    python scripts/07_train_tcae.py --max_train 500 --max_val 200 --epochs 2   # smoke
+    python scripts/07_train_unet_anchor.py
+    python scripts/07_train_unet_anchor.py --max_train 500 --max_val 200 --epochs 2   # smoke
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ from calinet.data.dataset import EpisodicPTBXL
 from calinet.data.normalizer import GlobalNormalizer
 from calinet.eval.metrics import per_lead_pcc
 from calinet.eval.morphology import classify_leads, compute_morphology
-from calinet.models.tcae import TCAE
+from calinet.models.unet_anchor import UNetWithAnchor
 
 
 # ----------------------------------------------------------------------
@@ -65,7 +65,7 @@ def parse_args():
     p.add_argument("--max_train", type=int, default=None)
     p.add_argument("--max_val",   type=int, default=None)
     p.add_argument("--device", default=None)
-    p.add_argument("--tag", default="tcae")
+    p.add_argument("--tag", default="unet_anchor")
     return p.parse_args()
 
 
@@ -101,7 +101,7 @@ def _morph_err_norm(report) -> float:
 
 @torch.no_grad()
 def validate(
-    model: TCAE,
+    model: UNetWithAnchor,
     val_loader: DataLoader,
     normalizer: GlobalNormalizer,
     cfg: CaLiNetConfig,
@@ -226,7 +226,7 @@ def main():
     normalizer = GlobalNormalizer.load(artifact_dir / "normalizer.npz")
 
     # --- Build model ---
-    model = TCAE.from_artifacts(
+    model = UNetWithAnchor.from_artifacts(
         artifact_dir,
         n_in=len(cfg.input_leads),
         n_out=len(cfg.target_leads),
@@ -244,7 +244,7 @@ def main():
 
     # --- Print header ---
     print("=" * 88)
-    print(f"Step 4.5 - Train TCAE  (tag={args.tag}, device={device})")
+    print(f"Step 4.5 - Train UNetWithAnchor  (tag={args.tag}, device={device})")
     print("=" * 88)
     print(f"  params:            {n_params:,}")
     print(f"  reconstructed:     {groups['reconstructed']} (idx={recon_idx})")
@@ -281,7 +281,7 @@ def main():
         model, val_loader, normalizer, cfg,
         recon_idx, target_idx, tau_n, tau_m, device, desc="val@0",
     )
-    print(f"  TCAE@epoch0:  {fmt_metrics(m0)}")
+    print(f"  UNetWithAnchor@epoch0:  {fmt_metrics(m0)}")
     print(f"  GL baseline:  val_score={gl_val_score:.4f}")
     delta = m0["val_score"] - gl_val_score
     if abs(delta) > 0.01:
@@ -366,7 +366,7 @@ def main():
     print("-" * 88)
     best = df.iloc[best_epoch - 1] if best_epoch >= 1 else None
     if best is not None:
-        print(f"  TCAE (best):  val_score={best['val_score']:.4f}  "
+        print(f"  UNetWithAnchor (best):  val_score={best['val_score']:.4f}  "
               f"PCC={best['pcc_recon']:.4f}  nrmse={best['nrmse_recon']:.4f}  "
               f"morph={best['morph_err_norm']:.4f}  "
               f"ST60_ant={best['st60_anterior_mv']:.4f} mV")
@@ -376,8 +376,8 @@ def main():
     if best is not None:
         dpcm = best['val_score'] - pcm_val_score
         dgl  = best['val_score'] - gl_val_score
-        print(f"  TCAE - PCM:   {dpcm:+.4f}  (CaLiNet-E framing signal)")
-        print(f"  TCAE - GL:    {dgl:+.4f}")
+        print(f"  UNetWithAnchor - PCM:   {dpcm:+.4f}  (CaLiNet-E framing signal)")
+        print(f"  UNetWithAnchor - GL:    {dgl:+.4f}")
     print(f"\nelapsed: {(time.time()-t0)/60:.1f} min")
 
 

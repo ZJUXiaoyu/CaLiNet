@@ -69,7 +69,7 @@ class CaLiNetE(nn.Module):
             "b_global", torch.from_numpy(b_global.astype(np.float32))
         )
 
-        # Shared backbone — FiLM ENABLED (the only structural difference vs TCAE)
+        # Shared backbone — FiLM ENABLED (the only structural difference vs 1D U-Net w/ anchor)
         self.backbone = ResidualUNet(
             n_in=n_in,
             n_out=n_out,

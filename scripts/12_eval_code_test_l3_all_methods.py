@@ -9,7 +9,7 @@ Methods evaluated (same checkpoints as PTB-XL/CPSC2018 tables):
     PCM                    per-patient ridge calibration
     Transformer            from-scratch Transformer baseline
     1D U-Net               from-scratch CNN baseline (no anchor)
-    1D U-Net w/ anchor     TCAE: CNN backbone + W_global anchor
+    1D U-Net w/ anchor     UNetWithAnchor: CNN backbone + W_global anchor
     CaLiNet-E              ours (calibration + non-linear + soft fallback)
 
 For each method, the same temporal layout is used (2s calibration block +
@@ -37,7 +37,7 @@ from calinet.data.normalizer import GlobalNormalizer
 from calinet.data.preprocessing import apply_filter
 from calinet.data.episodes import resolve_lead_indices
 from calinet.models.calinet_e import CaLiNetE
-from calinet.models.tcae import TCAE
+from calinet.models.unet_anchor import UNetWithAnchor
 from calinet.models.baselines import CNNBaseline, TransformerBaseline
 from calinet.models.calibration import apply_transform, calibrate_patient
 
@@ -74,13 +74,13 @@ tr_model = TransformerBaseline(
 tr_model.load_state_dict(torch.load(artifact_dir / "transformer_baseline_best.pth", map_location=device)["model"])
 tr_model.eval()
 
-tcae_model = TCAE.from_artifacts(
+unet_anchor_model = UNetWithAnchor.from_artifacts(
     artifact_dir, n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
     channels=cfg.unet_channels, embedding_dim=cfg.embedding_dim,
     pad_to_multiple=cfg.pad_to_multiple,
 ).to(device)
-tcae_model.load_state_dict(torch.load(artifact_dir / "tcae_full_best.pth", map_location=device)["model"])
-tcae_model.eval()
+unet_anchor_model.load_state_dict(torch.load(artifact_dir / "unet_anchor_full_best.pth", map_location=device)["model"])
+unet_anchor_model.eval()
 
 calinet_model = CaLiNetE.from_artifacts(
     artifact_dir, n_in=len(cfg.input_leads), n_out=len(cfg.target_leads),
@@ -175,9 +175,9 @@ with torch.no_grad():
             Y_tr = tr_model(Xt_t).squeeze(0).cpu().numpy()
             per_method_chunks['Transformer'].append(Y_tr)
 
-            # 1D U-Net w/ anchor (TCAE)
-            Y_tcae = tcae_model(Xt_t).squeeze(0).cpu().numpy()
-            per_method_chunks['1D U-Net w/ anchor'].append(Y_tcae)
+            # 1D U-Net w/ anchor (UNetWithAnchor)
+            Y_unet_anchor = unet_anchor_model(Xt_t).squeeze(0).cpu().numpy()
+            per_method_chunks['1D U-Net w/ anchor'].append(Y_unet_anchor)
 
             # CaLiNet-E
             batch = {

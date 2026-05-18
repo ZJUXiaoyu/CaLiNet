@@ -8,11 +8,11 @@ Then take the median across records and set:
   tau_n = median(PCM nrmse_recon)         * 1.5
   tau_m = median(PCM morph_err_norm)      * 1.5
 
-(So that PCM gets exp(-x/tau) ≈ 0.51 — leaves headroom for TCAE / CaLiNet-E
+(So that PCM gets exp(-x/tau) ≈ 0.51 — leaves headroom for 1D U-Net w/ anchor / CaLiNet-E
 to improve.)
 
 Result: writes checkpoints/val_score_tau.npz with tau_n / tau_m / medians.
-These are LOCKED — all subsequent methods (TCAE, CaLiNet-E, CaLiNet-F)
+These are LOCKED — all subsequent methods (1D U-Net w/ anchor, CaLiNet-E, CaLiNet-F)
 use the same tau values for fair val score comparison.
 
 Usage:
@@ -196,7 +196,7 @@ def main():
     tau_m = float(p_pcm_m[1] * 1.5)
 
     print()
-    print("Anchored val-score taus (LOCKED — used by TCAE / CaLiNet-E / CaLiNet-F)")
+    print("Anchored val-score taus (LOCKED — used by 1D U-Net w/ anchor / CaLiNet-E / CaLiNet-F)")
     print("-" * 72)
     print(f"  tau_n = {tau_n:.4f}   (PCM nrmse_recon median * 1.5)")
     print(f"  tau_m = {tau_m:.4f}   (PCM morph_err_norm median * 1.5)")
@@ -206,7 +206,7 @@ def main():
     print(f"    exp(-morph_p50 / tau_m)        = {np.exp(-p_pcm_m[1] / tau_m):.3f}  (target ~0.51)")
 
     # ------------------------------------------------------------------
-    # Measured val_score for GL and PCM (07_train_tcae.validate() uses
+    # Measured val_score for GL and PCM (07_train_unet_anchor.validate() uses
     # mean across records, not median; reproduce same aggregation here
     # so epoch-0 sanity check has a strict reference, not an estimate).
     # ------------------------------------------------------------------
@@ -233,7 +233,7 @@ def main():
     pcm = _aggregate(pccs_pcm, nrmses_pcm, morphs_pcm, rA_pcm, st_pcm, tA_pcm)
 
     print()
-    print("Measured val_score (mean aggregation, matching 07_train_tcae.validate)")
+    print("Measured val_score (mean aggregation, matching 07_train_unet_anchor.validate)")
     print("-" * 72)
     print(f"  GL : score={gl['score']:.4f}  PCC={gl['pcc']:.4f}  nrmse={gl['nrmse']:.4f}  "
           f"morph={gl['morph']:.4f}  ST60_ant={gl['st60_ant']:.4f} mV")

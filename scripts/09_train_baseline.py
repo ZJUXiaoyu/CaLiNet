@@ -3,8 +3,8 @@
 Forward signature: model(Xt) where Xt is (B, T, n_in). No calibration
 branch, no W_global anchor, no FiLM. Trains from random init.
 
-Loss / val flow are identical to 07_train_tcae.py so the resulting
-val_score is directly comparable to GL / PCM / TCAE / CaLiNet-E.
+Loss / val flow are identical to 07_train_unet_anchor.py so the resulting
+val_score is directly comparable to GL / PCM / 1D U-Net w/ anchor / CaLiNet-E.
 
 Usage:
     python scripts/09_train_baseline.py --model cnn         --epochs 50 --tag cnn_baseline
