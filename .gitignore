@@ -45,3 +45,14 @@ dist/
 logs/
 runs/
 wandb/
+
+# ==== Regenerable artifacts (not in git, reproduced by scripts 01 and 05) ====
+checkpoints/global_W.npz
+checkpoints/rho_config.npz
+
+# ==== Trained model weights (not in git, Zenodo upon acceptance) ====
+checkpoints/*.safetensors
+
+# ==== Training logs and intermediate outputs ====
+outputs/
+tensorboard/
